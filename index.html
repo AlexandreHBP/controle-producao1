@@ -232,13 +232,75 @@
         }
 
         /* Image upload styles */
-        .image-upload-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            min-width: 120px;
-        }
+                 .image-upload-container {
+             display: flex;
+             flex-direction: column;
+             align-items: center;
+             gap: 8px;
+             min-width: 120px;
+         }
+
+         /* Tabela de Tamanhos */
+         .sizes-table-container {
+             margin-top: 8px;
+             border: 2px solid #f97316;
+             border-radius: 8px;
+             padding: 8px;
+             background: rgba(249, 115, 22, 0.05);
+             max-width: 280px;
+         }
+
+         .sizes-table-header {
+             text-align: center;
+             font-size: 0.7rem;
+             font-weight: 700;
+             color: #f97316;
+             margin-bottom: 6px;
+             text-transform: uppercase;
+             letter-spacing: 0.05em;
+         }
+
+         .sizes-table {
+             display: grid;
+             grid-template-columns: repeat(7, 1fr);
+             gap: 4px;
+             max-width: 100%;
+         }
+
+         .size-column {
+             display: flex;
+             flex-direction: column;
+             align-items: center;
+             gap: 2px;
+         }
+
+         .size-label {
+             font-size: 0.6rem;
+             font-weight: 600;
+             color: #f97316;
+             text-align: center;
+             min-width: 20px;
+         }
+
+         .size-checkbox {
+             width: 16px;
+             height: 16px;
+             accent-color: #f97316;
+             cursor: pointer;
+             border: 1px solid #f97316;
+             border-radius: 3px;
+             background: rgba(249, 115, 22, 0.1);
+         }
+
+         .size-checkbox:checked {
+             background: #f97316;
+             border-color: #f97316;
+         }
+
+         .size-checkbox:hover {
+             transform: scale(1.1);
+             box-shadow: 0 0 8px rgba(249, 115, 22, 0.3);
+         }
 
         .file-upload-btn {
             background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
@@ -256,6 +318,24 @@
         .file-upload-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+        }
+
+        .btn-conclude {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .btn-conclude:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
         }
 
         .image-preview {
@@ -935,24 +1015,26 @@
                 }
 
                 setTimeout(() => {
-                    const newOrder = {
-                        id: orderIdCounter++,
-                        cliente,
-                        numeroPedido,
-                        entrada: formatDate(entrada),
-                        entrega: formatDate(entrega),
-                        observacao,
-                        layoutImage: null,
-                        status: {
-                            plotter: false,
-                            corte: false,
-                            separacao: false,
-                            bordadoSilk: false,
-                            oficina: false,
-                            acabamento: false
-                        },
-                        completedDates: {}
-                    };
+                                         const newOrder = {
+                         id: orderIdCounter++,
+                         cliente,
+                         numeroPedido,
+                         entrada: formatDate(entrada),
+                         entrega: formatDate(entrega),
+                         observacao,
+                         layoutImage: null,
+                         selectedSizes: {},
+                         layoutConcluded: false,
+                         status: {
+                             plotter: false,
+                             corte: false,
+                             separacao: false,
+                             bordadoSilk: false,
+                             oficina: false,
+                             acabamento: false
+                         },
+                         completedDates: {}
+                     };
 
                     orders.push(newOrder);
                     applySearch();
@@ -969,8 +1051,16 @@
         }
 
         function formatDate(dateString) {
-            const date = new Date(dateString);
-            return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`;
+            // Criar data no fuso horário de São Paulo (UTC-3)
+            const [year, month, day] = dateString.split('-');
+            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            
+            // Ajustar para o fuso horário de São Paulo
+            const saoPauloOffset = -3 * 60; // UTC-3 em minutos
+            const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+            const saoPauloTime = new Date(utc + (saoPauloOffset * 60000));
+            
+            return `${String(saoPauloTime.getDate()).padStart(2, '0')}/${String(saoPauloTime.getMonth() + 1).padStart(2, '0')}`;
         }
 
         function triggerFileInput(orderId) {
@@ -1080,36 +1170,106 @@
             }
         }
 
-        function removeLayoutImage(orderId) {
-            try {
-                const order = orders.find(o => o.id === orderId);
-                if (order) {
-                    order.layoutImage = null;
-                    applySearch();
-                                            showNotification(`Layout removido do pedido ${order.numeroPedido}`, 'info');
-                }
-            } catch (error) {
-                console.error('Error in removeLayoutImage:', error);
-                showNotification('Erro ao remover imagem', 'error');
-            }
-        }
+                 function removeLayoutImage(orderId) {
+             try {
+                 const order = orders.find(o => o.id === orderId);
+                 if (order) {
+                     order.layoutImage = null;
+                     // Limpar também os tamanhos selecionados e resetar layoutConcluded
+                     if (order.selectedSizes) {
+                         delete order.selectedSizes;
+                     }
+                     order.layoutConcluded = false;
+                     applySearch();
+                     showNotification(`Layout removido do pedido ${order.numeroPedido}`, 'info');
+                 }
+             } catch (error) {
+                 console.error('Error in removeLayoutImage:', error);
+                 showNotification('Erro ao remover imagem', 'error');
+             }
+         }
 
-        function viewLayoutImage(orderId) {
-            try {
-                const order = orders.find(o => o.id === orderId);
-                if (order && order.layoutImage) {
-                    const modal = document.getElementById('imageModal');
-                    const modalImage = document.getElementById('modalImage');
-                    
-                    modalImage.src = order.layoutImage.data;
-                    modalImage.alt = `Layout - ${order.numeroPedido}`;
-                    modal.classList.add('show');
-                }
-            } catch (error) {
-                console.error('Error in viewLayoutImage:', error);
-                showNotification('Erro ao visualizar imagem', 'error');
-            }
-        }
+         function updateSizeQuantity(orderId, size, isSelected) {
+             try {
+                 const order = orders.find(o => o.id === orderId);
+                 if (order) {
+                     if (!order.selectedSizes) {
+                         order.selectedSizes = {};
+                     }
+                     
+                     if (isSelected) {
+                         order.selectedSizes[size] = true;
+                     } else {
+                         delete order.selectedSizes[size];
+                     }
+                     
+                     // Salvar automaticamente
+                     setTimeout(() => {
+                         showNotification(`Tamanho ${size} ${isSelected ? 'selecionado' : 'removido'}`, 'info');
+                     }, 500);
+                 }
+             } catch (error) {
+                 console.error('Error in updateSizeQuantity:', error);
+                 showNotification('Erro ao atualizar tamanho', 'error');
+             }
+         }
+
+                 function viewLayoutImage(orderId) {
+             try {
+                 const order = orders.find(o => o.id === orderId);
+                 if (order && order.layoutImage) {
+                     // Se o layout foi concluído, mostrar os tamanhos selecionados
+                     if (order.layoutConcluded) {
+                         showSizesModal(order);
+                     } else {
+                         // Comportamento normal: mostrar a imagem
+                         const modal = document.getElementById('imageModal');
+                         const modalImage = document.getElementById('modalImage');
+                         
+                         modalImage.src = order.layoutImage.data;
+                         modalImage.alt = `Layout - ${order.numeroPedido}`;
+                         modal.classList.add('show');
+                     }
+                 }
+             } catch (error) {
+                 console.error('Error in viewLayoutImage:', error);
+                 showNotification('Erro ao visualizar imagem', 'error');
+             }
+         }
+
+         function concludeLayout(orderId) {
+             try {
+                 const order = orders.find(o => o.id === orderId);
+                 if (order) {
+                     // Marcar o layout como concluído
+                     order.layoutConcluded = true;
+                     
+                     // Salvar os tamanhos selecionados (já estão sendo salvos automaticamente)
+                     applySearch();
+                     showNotification(`Layout do pedido ${order.numeroPedido} concluído! Tamanhos salvos.`, 'success');
+                 }
+             } catch (error) {
+                 console.error('Error in concludeLayout:', error);
+                 showNotification('Erro ao concluir layout', 'error');
+             }
+         }
+
+         function showSizesModal(order) {
+             try {
+                 const sizesInfo = Object.keys(order.selectedSizes || {})
+                     .filter(size => order.selectedSizes[size])
+                     .join(', ');
+                 
+                 const message = sizesInfo ? 
+                     `Tamanhos selecionados: ${sizesInfo}` : 
+                     'Nenhum tamanho foi selecionado';
+                 
+                 showNotification(message, 'info');
+             } catch (error) {
+                 console.error('Error in showSizesModal:', error);
+                 showNotification('Erro ao mostrar tamanhos', 'error');
+             }
+         }
 
         function closeImageModal() {
             try {
@@ -1183,7 +1343,14 @@
             
             if (stageIndex === 0) {
                 const [day, month] = order.entrada.split('/');
-                startDate = new Date(new Date().getFullYear(), parseInt(month) - 1, parseInt(day));
+                // Criar data no fuso horário de São Paulo
+                const currentYear = new Date().getFullYear();
+                startDate = new Date(currentYear, parseInt(month) - 1, parseInt(day));
+                
+                // Ajustar para o fuso horário de São Paulo (UTC-3)
+                const saoPauloOffset = -3 * 60; // UTC-3 em minutos
+                const utc = startDate.getTime() + (startDate.getTimezoneOffset() * 60000);
+                startDate = new Date(utc + (saoPauloOffset * 60000));
             } else {
                 const prevStage = stages[stageIndex - 1];
                 if (order.completedDates[prevStage]) {
@@ -1211,7 +1378,14 @@
             
             if (stageIndex === 0) {
                 const [day, month] = order.entrada.split('/');
-                startDate = new Date(new Date().getFullYear(), parseInt(month) - 1, parseInt(day));
+                // Criar data no fuso horário de São Paulo
+                const currentYear = new Date().getFullYear();
+                startDate = new Date(currentYear, parseInt(month) - 1, parseInt(day));
+                
+                // Ajustar para o fuso horário de São Paulo (UTC-3)
+                const saoPauloOffset = -3 * 60; // UTC-3 em minutos
+                const utc = startDate.getTime() + (startDate.getTimezoneOffset() * 60000);
+                startDate = new Date(utc + (saoPauloOffset * 60000));
             } else {
                 const prevStage = stages[stageIndex - 1];
                 if (order.completedDates[prevStage]) {
@@ -1336,76 +1510,171 @@
                         row.classList.add('completed');
                     }
 
-                    // Layout column with image upload
-                    const layoutCell = `
-                        <td class="stage-cell text-center">
-                            <div class="image-upload-container">
-                                ${order.layoutImage ? 
-                                    `<div style="position: relative;">
-                                        <img src="${order.layoutImage.data}" 
-                                             alt="Layout ${order.numeroPedido}"
-                                             class="image-preview"
-                                             onclick="viewLayoutImage(${order.id})"
-                                             title="Clique para visualizar">
-                                        <button class="remove-image-btn" 
-                                                onclick="removeLayoutImage(${order.id})"
-                                                title="Remover imagem"
-                                                style="position: absolute; top: -8px; right: -8px;">×</button>
-                                     </div>` : 
-                                    `<div class="no-image-placeholder">
-                                        Sem layout
-                                     </div>`
-                                }
-                                <button class="file-upload-btn" onclick="triggerFileInput(${order.id})">
-                                    ${order.layoutImage ? 'Trocar' : '+ Anexar'}
-                                </button>
-                            </div>
-                        </td>
-                    `;
+                                         // Layout column with image upload
+                     const layoutCell = `
+                         <td class="stage-cell text-center">
+                             <div class="image-upload-container">
+                                 ${order.layoutImage ? 
+                                     `<div style="position: relative;">
+                                         <img src="${order.layoutImage.data}" 
+                                              alt="Layout ${order.numeroPedido}"
+                                              class="image-preview"
+                                              onclick="viewLayoutImage(${order.id})"
+                                              title="Clique para visualizar">
+                                         <button class="remove-image-btn" 
+                                                 onclick="removeLayoutImage(${order.id})"
+                                                 title="Remover imagem"
+                                                 style="position: absolute; top: -8px; right: -8px;">×</button>
+                                         
+                                                                                   <!-- Tabela de Tamanhos -->
+                                          ${!order.layoutConcluded ? `<div class="sizes-table-container">
+                                              <div class="sizes-table-header">Tamanhos</div>
+                                              <div class="sizes-table">
+                                                  <div class="size-column">
+                                                      <div class="size-label">PP</div>
+                                                      <input type="checkbox" class="size-checkbox" ${order.selectedSizes && order.selectedSizes.PP ? 'checked' : ''} onchange="updateSizeQuantity(${order.id}, 'PP', this.checked)">
+                                                  </div>
+                                                  <div class="size-column">
+                                                      <div class="size-label">P</div>
+                                                      <input type="checkbox" class="size-checkbox" ${order.selectedSizes && order.selectedSizes.P ? 'checked' : ''} onchange="updateSizeQuantity(${order.id}, 'P', this.checked)">
+                                                  </div>
+                                                  <div class="size-column">
+                                                      <div class="size-label">M</div>
+                                                      <input type="checkbox" class="size-checkbox" ${order.selectedSizes && order.selectedSizes.M ? 'checked' : ''} onchange="updateSizeQuantity(${order.id}, 'M', this.checked)">
+                                                  </div>
+                                                  <div class="size-column">
+                                                      <div class="size-label">G</div>
+                                                      <input type="checkbox" class="size-checkbox" ${order.selectedSizes && order.selectedSizes.G ? 'checked' : ''} onchange="updateSizeQuantity(${order.id}, 'G', this.checked)">
+                                                  </div>
+                                                  <div class="size-column">
+                                                      <div class="size-label">GG</div>
+                                                      <input type="checkbox" class="size-checkbox" ${order.selectedSizes && order.selectedSizes.GG ? 'checked' : ''} onchange="updateSizeQuantity(${order.id}, 'GG', this.checked)">
+                                                  </div>
+                                                  <div class="size-column">
+                                                      <div class="size-label">XG</div>
+                                                      <input type="checkbox" class="size-checkbox" ${order.selectedSizes && order.selectedSizes.XG ? 'checked' : ''} onchange="updateSizeQuantity(${order.id}, 'XG', this.checked)">
+                                                  </div>
+                                                  <div class="size-column">
+                                                      <div class="size-label">2XG</div>
+                                                      <input type="checkbox" class="size-checkbox" ${order.selectedSizes && order.selectedSizes['2XG'] ? 'checked' : ''} onchange="updateSizeQuantity(${order.id}, '2XG', this.checked)">
+                                                  </div>
+                                                  <div class="size-column">
+                                                      <div class="size-label">3XG</div>
+                                                      <input type="checkbox" class="size-checkbox" ${order.selectedSizes && order.selectedSizes['3XG'] ? 'checked' : ''} onchange="updateSizeQuantity(${order.id}, '3XG', this.checked)">
+                                                  </div>
+                                                  <div class="size-column">
+                                                      <div class="size-label">4XG</div>
+                                                      <input type="checkbox" class="size-checkbox" ${order.selectedSizes && order.selectedSizes['4XG'] ? 'checked' : ''} onchange="updateSizeQuantity(${order.id}, '4XG', this.checked)">
+                                                  </div>
+                                                  <div class="size-column">
+                                                      <div class="size-label">5XG</div>
+                                                      <input type="checkbox" class="size-checkbox" ${order.selectedSizes && order.selectedSizes['5XG'] ? 'checked' : ''} onchange="updateSizeQuantity(${order.id}, '5XG', this.checked)">
+                                                  </div>
+                                                  <div class="size-column">
+                                                      <div class="size-label">6XG</div>
+                                                      <input type="checkbox" class="size-checkbox" ${order.selectedSizes && order.selectedSizes['6XG'] ? 'checked' : ''} onchange="updateSizeQuantity(${order.id}, '6XG', this.checked)">
+                                                  </div>
+                                                  <div class="size-column">
+                                                      <div class="size-label">7XG</div>
+                                                      <input type="checkbox" class="size-checkbox" ${order.selectedSizes && order.selectedSizes['7XG'] ? 'checked' : ''} onchange="updateSizeQuantity(${order.id}, '7XG', this.checked)">
+                                                  </div>
+                                                  <div class="size-column">
+                                                      <div class="size-label">8XG</div>
+                                                      <input type="checkbox" class="size-checkbox" ${order.selectedSizes && order.selectedSizes['8XG'] ? 'checked' : ''} onchange="updateSizeQuantity(${order.id}, '8XG', this.checked)">
+                                                  </div>
+                                              </div>
+                                          </div>` : ''}
+                                      </div>` : 
+                                     `<div class="no-image-placeholder">
+                                         Sem layout
+                                      </div>`
+                                 }
+                                                                   <div style="display: flex; gap: 8px; justify-content: center;">
+                                      <button class="file-upload-btn" onclick="triggerFileInput(${order.id})">
+                                          ${order.layoutImage ? 'Trocar' : '+ Anexar'}
+                                      </button>
+                                      ${order.layoutImage ? `<button class="btn-conclude" onclick="concludeLayout(${order.id})">
+                                          ✓ Concluir
+                                      </button>` : ''}
+                                  </div>
+                             </div>
+                         </td>
+                     `;
 
                     const stageCells = stages.map(stage => {
                         const status = getStageStatus(order, stage);
-                        const daysRemaining = getDaysInStage(order, stage);
                         const limit = stageLimits[stage];
                         
                         let cellClass = 'stage-cell';
                         let tooltip = '';
                         let displayText = '';
                         
-                        if (order.status[stage]) {
-                            cellClass += ` ${status}`;
-                            
+                        // Verificar se deve mostrar dias restantes para esta etapa
+                        // Os dias só aparecem se a etapa anterior foi concluída (exceto para o Plotter)
+                        let shouldShowDays = false;
+                        let daysToShow = 0;
+                        
+                        if (!order.status[stage]) {
                             const stageIndex = stages.indexOf(stage);
-                            let startDate;
                             
                             if (stageIndex === 0) {
-                                const [day, month] = order.entrada.split('/');
-                                startDate = new Date(new Date().getFullYear(), parseInt(month) - 1, parseInt(day));
+                                // Para o Plotter (primeira etapa), sempre mostrar dias restantes
+                                shouldShowDays = true;
                             } else {
+                                // Para outras etapas, só mostrar se a etapa anterior foi concluída
                                 const prevStage = stages[stageIndex - 1];
-                                if (order.completedDates[prevStage]) {
-                                    startDate = new Date(order.completedDates[prevStage]);
+                                shouldShowDays = order.status[prevStage];
+                            }
+                            
+                            if (shouldShowDays) {
+                                // Calcular dias restantes para esta etapa
+                                let startDate;
+                                
+                                if (stageIndex === 0) {
+                                    // Para o Plotter, começar desde a data de entrada do pedido
+                                    const [day, month] = order.entrada.split('/');
+                                    // Criar data no fuso horário de São Paulo
+                                    const currentYear = new Date().getFullYear();
+                                    startDate = new Date(currentYear, parseInt(month) - 1, parseInt(day));
+                                    
+                                    // Ajustar para o fuso horário de São Paulo (UTC-3)
+                                    const saoPauloOffset = -3 * 60; // UTC-3 em minutos
+                                    const utc = startDate.getTime() + (startDate.getTimezoneOffset() * 60000);
+                                    startDate = new Date(utc + (saoPauloOffset * 60000));
                                 } else {
-                                    startDate = new Date();
+                                    // Para outras etapas, começar desde a conclusão da etapa anterior
+                                    const prevStage = stages[stageIndex - 1];
+                                    if (order.completedDates[prevStage]) {
+                                        startDate = new Date(order.completedDates[prevStage]);
+                                    } else {
+                                        shouldShowDays = false; // Não deve mostrar se não há data de conclusão
+                                    }
+                                }
+                                
+                                if (shouldShowDays && startDate) {
+                                    const now = new Date();
+                                    const stageEndDate = new Date(startDate.getTime() + (limit * 24 * 60 * 60 * 1000));
+                                    const diffTime = stageEndDate - now;
+                                    daysToShow = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                    
+                                    if (daysToShow > 0) {
+                                        displayText = `${daysToShow}d restantes`;
+                                        tooltip = `${daysToShow} dias restantes (limite: ${limit} dias)`;
+                                    } else if (daysToShow === 0) {
+                                        displayText = 'Vence hoje';
+                                        tooltip = 'Etapa vence hoje!';
+                                    } else {
+                                        const overdueDays = Math.abs(daysToShow);
+                                        displayText = `${overdueDays}d atraso`;
+                                        tooltip = `${overdueDays} dias de atraso (limite era ${limit} dias)`;
+                                    }
                                 }
                             }
-                            
-                            const now = new Date();
-                            const stageEndDate = new Date(startDate.getTime() + (limit * 24 * 60 * 60 * 1000));
-                            const diffTime = stageEndDate - now;
-                            const actualDaysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                            
-                            if (actualDaysRemaining > 0) {
-                                displayText = `${actualDaysRemaining}d restantes`;
-                                tooltip = `${actualDaysRemaining} dias restantes (limite: ${limit} dias)`;
-                            } else if (actualDaysRemaining === 0) {
-                                displayText = 'Vence hoje';
-                                tooltip = 'Etapa vence hoje!';
-                            } else {
-                                const overdueDays = Math.abs(actualDaysRemaining);
-                                displayText = `${overdueDays}d atraso`;
-                                tooltip = `${overdueDays} dias de atraso (limite era ${limit} dias)`;
-                            }
+                        }
+                        
+                        // Aplicar classe de status se a etapa estiver concluída
+                        if (order.status[stage]) {
+                            cellClass += ` ${status}`;
                         }
                         
                         return `
@@ -1415,7 +1684,7 @@
                                            class="checkbox"
                                            ${order.status[stage] ? 'checked' : ''} 
                                            onchange="toggleStage(${order.id}, '${stage}')">
-                                    ${order.status[stage] ? <span class="days-badge ${status}">${displayText}</span> : ''}
+                                    ${shouldShowDays ? `<span class="days-badge ${daysToShow < 0 ? 'overdue' : daysToShow === 0 ? 'due-today' : daysToShow === 1 ? 'warning' : 'on-time'}">${displayText}</span>` : ''}
                                 </div>
                             </td>
                         `;
@@ -1487,8 +1756,17 @@
             try {
                 const today = new Date();
                 const [day, month] = order.entrega.split('/');
-                const deliveryDate = new Date(today.getFullYear(), parseInt(month) - 1, parseInt(day));
-                return deliveryDate < today && !Object.values(order.status).every(status => status);
+                
+                // Criar data no fuso horário de São Paulo
+                const currentYear = new Date().getFullYear();
+                const deliveryDate = new Date(currentYear, parseInt(month) - 1, parseInt(day));
+                
+                // Ajustar para o fuso horário de São Paulo (UTC-3)
+                const saoPauloOffset = -3 * 60; // UTC-3 em minutos
+                const utc = deliveryDate.getTime() + (deliveryDate.getTimezoneOffset() * 60000);
+                const adjustedDeliveryDate = new Date(utc + (saoPauloOffset * 60000));
+                
+                return adjustedDeliveryDate < today && !Object.values(order.status).every(status => status);
             } catch (error) {
                 console.error('Error in isOverdue:', error);
                 return false;
@@ -1628,21 +1906,23 @@
                 ];
 
                 sampleOrders.forEach(order => {
-                    orders.push({
-                        id: orderIdCounter++,
-                        ...order,
-                        observacao: '',
-                        layoutImage: null,
-                        status: {
-                            plotter: Math.random() > 0.7,
-                            corte: Math.random() > 0.8,
-                            separacao: Math.random() > 0.9,
-                            bordadoSilk: Math.random() > 0.9,
-                            oficina: Math.random() > 0.95,
-                            acabamento: Math.random() > 0.98
-                        },
-                        completedDates: {}
-                    });
+                                         orders.push({
+                         id: orderIdCounter++,
+                         ...order,
+                         observacao: '',
+                         layoutImage: null,
+                         selectedSizes: {},
+                         layoutConcluded: false,
+                         status: {
+                             plotter: Math.random() > 0.7,
+                             corte: Math.random() > 0.8,
+                             separacao: Math.random() > 0.9,
+                             bordadoSilk: Math.random() > 0.9,
+                             oficina: Math.random() > 0.95,
+                             acabamento: Math.random() > 0.98
+                         },
+                         completedDates: {}
+                     });
                 });
 
                 filteredOrders = [...orders];
