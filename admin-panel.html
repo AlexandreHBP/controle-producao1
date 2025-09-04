@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo - Controle de Produção</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .admin-header {
+            background: linear-gradient(135deg, rgba(31, 41, 55, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
+            border-bottom: 2px solid rgba(139, 92, 246, 0.8);
+            padding: 1.5rem 0;
+            backdrop-filter: blur(20px);
+        }
+
+        .admin-header .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #c4b5fd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-name {
+            color: #a78bfa;
+            font-weight: 600;
+        }
+
+        .btn-logout {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #e5e7eb;
+            border-bottom: 2px solid rgba(139, 92, 246, 0.5);
+            padding-bottom: 0.5rem;
+        }
+
+        /* Funcionários */
+        .funcionarios-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .funcionario-card {
+            background: linear-gradient(135deg, rgba(31, 41, 55, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
+            border: 2px solid rgba(55, 65, 81, 0.8);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .funcionario-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(139, 92, 246, 0.8);
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+        }
+
+        .funcionario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .funcionario-nome {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #f3f4f6;
+        }
+
+        .funcionario-cargo {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .funcionario-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Adicionar Funcionário */
+        .add-funcionario {
+            background: linear-gradient(135deg, rgba(31, 41, 55, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
+            border: 2px dashed rgba(139, 92, 246, 0.5);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .add-funcionario:hover {
+            border-color: rgba(139, 92, 246, 0.8);
+            background: linear-gradient(135deg, rgba(31, 41, 55, 0.98) 0%, rgba(17, 24, 39, 0.98) 100%);
+        }
+
+        .add-icon {
+            font-size: 3rem;
+            color: #8b5cf6;
+            margin-bottom: 1rem;
+        }
+
+        .add-text {
+            color: #9ca3af;
+            font-size: 1.1rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgba(31, 41, 55, 0.98) 0%, rgba(17, 24, 39, 0.98) 100%);
+            margin: 5% auto;
+            padding: 2rem;
+            border: 2px solid rgba(139, 92, 246, 0.8);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            backdrop-filter: blur(20px);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #e5e7eb;
+        }
+
+        .close {
+            color: #9ca3af;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #ef4444;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #e5e7eb;
+            font-weight: 600;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid rgba(55, 65, 81, 0.8);
+            border-radius: 8px;
+            background: rgba(31, 41, 55, 0.8);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid rgba(55, 65, 81, 0.8);
+            border-radius: 8px;
+            background: rgba(31, 41, 55, 0.8);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .admin-header .container {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .funcionarios-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="container">
+            <h1 class="admin-title">🔐 PAINEL ADMINISTRATIVO</h1>
+            <div class="admin-info">
+                <span class="admin-name" id="adminName">Administrador</span>
+                <button class="btn-logout" onclick="logout()">🚪 Sair</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <h2 class="section-title">👥 Gerenciar Funcionários</h2>
+        
+        <div class="funcionarios-grid" id="funcionariosGrid">
+            <!-- Funcionários serão inseridos aqui -->
+        </div>
+
+        <!-- Adicionar Funcionário -->
+        <div class="add-funcionario" onclick="openAddModal()">
+            <div class="add-icon">➕</div>
+            <div class="add-text">Adicionar Novo Funcionário</div>
+        </div>
+    </main>
+
+    <!-- Modal para Adicionar/Editar Funcionário -->
+    <div id="funcionarioModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Adicionar Funcionário</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            
+            <form id="funcionarioForm">
+                <div class="form-group">
+                    <label class="form-label" for="nome">Nome Completo</label>
+                    <input type="text" id="nome" class="form-input" required placeholder="Nome do funcionário">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="cargo">Cargo</label>
+                    <select id="cargo" class="form-select" required>
+                        <option value="">Selecione o cargo</option>
+                        <option value="plotter">Plotter</option>
+                        <option value="corte">Corte</option>
+                        <option value="separacao">Separação</option>
+                        <option value="bordadoSilk">Bordado/Silk</option>
+                        <option value="oficina">Oficina</option>
+                        <option value="acabamento">Acabamento</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="senha">Senha</label>
+                    <input type="password" id="senha" class="form-input" required placeholder="Senha do funcionário">
+                </div>
+            </form>
+            
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+                <button class="btn-primary" onclick="saveFuncionario()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Verificar se é administrador
+        function checkAdmin() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            if (currentUser.tipo !== 'admin') {
+                alert('Acesso negado! Apenas administradores podem acessar este painel.');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            document.getElementById('adminName').textContent = currentUser.nome;
+        }
+
+        // Dados dos funcionários (em produção, viria de um banco de dados)
+        let funcionarios = [
+            { id: 1, nome: 'João Silva', cargo: 'plotter', senha: '123456' },
+            { id: 2, nome: 'Maria Santos', cargo: 'corte', senha: '123456' },
+            { id: 3, nome: 'Pedro Costa', cargo: 'separacao', senha: '123456' },
+            { id: 4, nome: 'Ana Oliveira', cargo: 'bordadoSilk', senha: '123456' },
+            { id: 5, nome: 'Carlos Lima', cargo: 'oficina', senha: '123456' },
+            { id: 6, nome: 'Lucia Ferreira', cargo: 'acabamento', senha: '123456' }
+        ];
+
+        let editingId = null;
+
+        // Renderizar funcionários
+        function renderFuncionarios() {
+            const grid = document.getElementById('funcionariosGrid');
+            grid.innerHTML = '';
+            
+            funcionarios.forEach(funcionario => {
+                const card = document.createElement('div');
+                card.className = 'funcionario-card';
+                card.innerHTML = `
+                    <div class="funcionario-header">
+                        <span class="funcionario-nome">${funcionario.nome}</span>
+                        <span class="funcionario-cargo">${getCargoDisplayName(funcionario.cargo)}</span>
+                    </div>
+                    <div class="funcionario-actions">
+                        <button class="btn-edit" onclick="editFuncionario(${funcionario.id})">✏️ Editar</button>
+                        <button class="btn-delete" onclick="deleteFuncionario(${funcionario.id})">🗑️ Excluir</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Obter nome de exibição do cargo
+        function getCargoDisplayName(cargo) {
+            const names = {
+                plotter: 'Plotter',
+                corte: 'Corte',
+                separacao: 'Separação',
+                bordadoSilk: 'Bordado/Silk',
+                oficina: 'Oficina',
+                acabamento: 'Acabamento'
+            };
+            return names[cargo] || cargo;
+        }
+
+        // Abrir modal para adicionar funcionário
+        function openAddModal() {
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Adicionar Funcionário';
+            document.getElementById('funcionarioForm').reset();
+            document.getElementById('funcionarioModal').style.display = 'block';
+        }
+
+        // Abrir modal para editar funcionário
+        function editFuncionario(id) {
+            const funcionario = funcionarios.find(f => f.id === id);
+            if (funcionario) {
+                editingId = id;
+                document.getElementById('modalTitle').textContent = 'Editar Funcionário';
+                document.getElementById('nome').value = funcionario.nome;
+                document.getElementById('cargo').value = funcionario.cargo;
+                document.getElementById('senha').value = funcionario.senha;
+                document.getElementById('funcionarioModal').style.display = 'block';
+            }
+        }
+
+        // Fechar modal
+        function closeModal() {
+            document.getElementById('funcionarioModal').style.display = 'none';
+            editingId = null;
+        }
+
+        // Salvar funcionário
+        function saveFuncionario() {
+            const nome = document.getElementById('nome').value.trim();
+            const cargo = document.getElementById('cargo').value;
+            const senha = document.getElementById('senha').value;
+            
+            if (!nome || !cargo || !senha) {
+                alert('Por favor, preencha todos os campos!');
+                return;
+            }
+            
+            if (editingId) {
+                // Editar funcionário existente
+                const index = funcionarios.findIndex(f => f.id === editingId);
+                if (index !== -1) {
+                    funcionarios[index] = { ...funcionarios[index], nome, cargo, senha };
+                }
+            } else {
+                // Adicionar novo funcionário
+                const newId = Math.max(...funcionarios.map(f => f.id)) + 1;
+                funcionarios.push({ id: newId, nome, cargo, senha });
+            }
+            
+            // Salvar no localStorage
+            localStorage.setItem('funcionarios', JSON.stringify(funcionarios));
+            
+            closeModal();
+            renderFuncionarios();
+            alert(editingId ? 'Funcionário atualizado com sucesso!' : 'Funcionário adicionado com sucesso!');
+        }
+
+        // Excluir funcionário
+        function deleteFuncionario(id) {
+            if (confirm('Tem certeza que deseja excluir este funcionário?')) {
+                funcionarios = funcionarios.filter(f => f.id !== id);
+                localStorage.setItem('funcionarios', JSON.stringify(funcionarios));
+                renderFuncionarios();
+                alert('Funcionário excluído com sucesso!');
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+
+        // Carregar dados salvos
+        function loadData() {
+            const savedFuncionarios = localStorage.getItem('funcionarios');
+            if (savedFuncionarios) {
+                funcionarios = JSON.parse(savedFuncionarios);
+            }
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAdmin();
+            loadData();
+            renderFuncionarios();
+        });
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('funcionarioModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

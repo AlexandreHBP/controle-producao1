@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Controle de Produção</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Efeitos de fundo */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(249, 115, 22, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(168, 85, 247, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .login-container {
+            background: linear-gradient(135deg, rgba(31, 41, 55, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
+            border-radius: 24px;
+            border: 2px solid rgba(55, 65, 81, 0.8);
+            padding: 3rem;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.7);
+            backdrop-filter: blur(20px);
+            animation: slideUp 0.6s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s;
+        }
+
+        .login-container:hover::before {
+            left: 100%;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .login-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #f97316 0%, #fb923c 50%, #fdba74 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(249, 115, 22, 0.3);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-subtitle {
+            color: #9ca3af;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #e5e7eb;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid rgba(55, 65, 81, 0.8);
+            border-radius: 12px;
+            background: rgba(31, 41, 55, 0.8);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+            background: rgba(31, 41, 55, 0.9);
+        }
+
+        .input-field::placeholder {
+            color: #9ca3af;
+        }
+
+        .btn-login {
+            width: 100%;
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
+        }
+
+        .btn-login:hover::before {
+            left: 100%;
+        }
+
+        .btn-admin {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            margin-top: 1rem;
+        }
+
+        .btn-admin:hover {
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        .login-info {
+            margin-top: 2rem;
+            text-align: center;
+            padding: 1rem;
+            background: rgba(55, 65, 81, 0.3);
+            border-radius: 12px;
+            border: 1px solid rgba(55, 65, 81, 0.5);
+        }
+
+        .info-text {
+            color: #9ca3af;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .info-icon {
+            color: #60a5fa;
+            font-size: 1.1rem;
+        }
+
+        .resultado {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .resultado.success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+            color: #4ade80;
+        }
+
+        .resultado.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #f87171;
+        }
+
+        /* Animações */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Responsividade */
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 1rem;
+                padding: 2rem;
+            }
+            
+            .login-title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1 class="login-title">CONTROLE DE PRODUÇÃO</h1>
+            <p class="login-subtitle">Faça login para acessar o sistema</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label class="form-label" for="nomeCompleto">Nome Completo</label>
+                <input type="text" 
+                       id="nomeCompleto" 
+                       class="input-field" 
+                       required 
+                       placeholder="Digite seu nome completo">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="senha">Senha</label>
+                <input type="password" 
+                       id="senha" 
+                       class="input-field" 
+                       required 
+                       placeholder="Digite sua senha">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="cargo">Cargo</label>
+                <select id="cargo" class="input-field" required>
+                    <option value="">Selecione seu cargo</option>
+                    <option value="plotter">Plotter</option>
+                    <option value="corte">Corte</option>
+                    <option value="separacao">Separação</option>
+                    <option value="bordadoSilk">Bordado/Silk</option>
+                    <option value="oficina">Oficina</option>
+                    <option value="acabamento">Acabamento</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-login">
+                <span>Entrar no Sistema</span>
+            </button>
+
+            <button type="button" class="btn-login btn-admin" onclick="loginAdmin()">
+                <span>🔐 Login Administrador</span>
+            </button>
+        </form>
+
+        <div class="login-info">
+            <p class="info-text">
+                <span class="info-icon">ℹ</span>
+                Acesso restrito aos funcionários autorizados
+            </p>
+        </div>
+
+        <div id="resultado" class="resultado"></div>
+    </div>
+
+    <script>
+        // Sistema de login para funcionários
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const nome = document.getElementById('nomeCompleto').value.trim();
+            const senha = document.getElementById('senha').value;
+            const cargo = document.getElementById('cargo').value;
+            
+            const resultado = document.getElementById('resultado');
+            resultado.style.display = 'block';
+            
+            if (nome && senha && cargo) {
+                if (senha === '123456') {
+                    resultado.className = 'resultado success';
+                    resultado.textContent = `Login bem-sucedido! Bem-vindo(a), ${nome} (${cargo})`;
+                    
+                    // Salvar dados do usuário
+                    const userData = { nome, cargo, tipo: 'funcionario' };
+                    localStorage.setItem('currentUser', JSON.stringify(userData));
+                    
+                    // Redirecionar após 2 segundos
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                } else {
+                    resultado.className = 'resultado error';
+                    resultado.textContent = 'Senha incorreta! Use: 123456';
+                }
+            } else {
+                resultado.className = 'resultado error';
+                resultado.textContent = 'Preencha todos os campos!';
+            }
+        });
+
+        // Sistema de login para administrador
+        function loginAdmin() {
+            const nome = prompt('Nome do Administrador:');
+            const senha = prompt('Senha do Administrador:');
+            
+            if (nome && senha) {
+                if (senha === 'admin123') {
+                    // Salvar dados do administrador
+                    const adminData = { nome, cargo: 'administrador', tipo: 'admin' };
+                    localStorage.setItem('currentUser', JSON.stringify(adminData));
+                    
+                    alert('Login de administrador realizado com sucesso!');
+                    window.location.href = 'admin-panel.html';
+                } else {
+                    alert('Senha de administrador incorreta!');
+                }
+            }
+        }
+    </script>
+</body>
+</html>
